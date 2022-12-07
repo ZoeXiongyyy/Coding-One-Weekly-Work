@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style type = "text/css" >
+body {
+	margin: 0;
+	overflow: hidden;
+}
+
+
+</style>
+</head>
+<body>
+  <canvas id="canvas1" width="600" height="600"></canvas>
+  <canvas id="canvas2" width="600" height="600"></canvas>
+  <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script language="javascript" type="text/javascript">
+const updateDimensions = () => {
+  width = window.innerWidth;
+  height = window.innerHeight;
+ 
+
+}
+
+
+</script>
+<script language="javascript" type="text/javascript">
+
+const canvas = document.getElementById("canvas1");
+const canvas2 = document.getElementById("canvas2");
+const context = canvas.getContext("2d");
+const context2 = canvas2.getContext("2d");
+
+let width = window.innerWidth;
+let height = window.innerHeight;
+
+let blurAmount = 0;
+
+function getMouse (e) {
+  mouseX = e.layerX;
+  mouseY = e.layerY;
+  blurAmount = Math.floor(mouseX / 10) % 2 == 0 ? Math.floor(mouseX / 10) : Math.floor(mouseX / 10) + 1;
+  requestAnimationFrame(draw);
+}
+
+//window.addEventListener("resize", updateDimensions, false);
+canvas.addEventListener("mousemove", getMouse, false);
+
+let mouseX = 10;
+let mouseY = 10
+const imageObject = new Image();
+imageObject.src = "1.jpeg";
+
+const imageWidth = imageObject.width;
+const imageHeight = imageObject.height;
+
+context2.drawImage(imageObject, 0, 0);
+
+let imageData = context2.getImageData(0,0, imageWidth, imageHeight);
+let data = imageData.data;
+let imageData2 = context.getImageData(0,0, imageWidth, imageHeight);
+
+const kernal = [-1,-1,-1,
+               -1,8,-1,
+               -1,-1,-1];
+
+//var positionVal = 0;
+function draw () {
+  for (let i = 1; i < imageHeight; i++) {
+  	for (let j = 1; j < imageWidth; j++) {
+      /*for (let n =  0 - (blurAmount/2); n < (blurAmount/2) + 1; n++) {
+       for (let m = 0 - (blurAmount/2); m < (blurAmount/2) + 1; m++) {
+         let pixelR = 0;
+         let pixelG = 0;
+         let pixelB = 0;
+         if (j + m >= imageWidth || j + m < 0 || i + n >= imageHeight || i + n < 0) {
+           pixelR = data[(((imageWidth * i) + j) * 4)];  
+           pixelG = data[(((imageWidth * i) + j) * 4 + 1)];
+           pixelB = data[(((imageWidth * i) + j) * 4 + 2)];
+
+         } else {
+           	pixelR = data[(((imageWidth * (i + n)) + j + m) * 4)];
+           pixelG = data[(((imageWidth * (i + n)) + j + m) * 4 + 1)];
+           pixelB = data[(((imageWidth * (i + n)) + j + m) * 4 + 2)];
+         }
+         r = r + (pixelR * (1 / ((blurAmount + 1) * (blurAmount + 1)) ) );
+         g = g + (pixelG * (1 / ((blurAmount + 1) * (blurAmount + 1)) ) );
+         b = b + (pixelB * (1 / ((blurAmount + 1) * (blurAmount + 1)) ) ); 
+         
+       }
+      }
+      imageData2.data[(((imageWidth * i) + j) * 4)] = r ;
+      imageData2.data[(((imageWidth * i) + j) * 4) + 1] = g;
+      imageData2.data[(((imageWidth * i) + j) * 4) + 2] = b ;
+      imageData2.data[(((imageWidth * i) + j) * 4) + 3] = 255;
+      
+    }
+  }
+  
+  context.putImageData(imageData2, 0, 0);
+}
+requestAnimationFrame(draw);*/
+            var positionVal1 = ((imageWidth * i) + j)*4;
+            var positionVal2 = ((imageWidth * (i-1)) + j)*4;
+            var positionVal3 = ((imageWidth * (i+1)) + j)*4;
+            var positionVal4 = ((imageWidth * i) + j - 1)*4;
+            var positionVal5 = ((imageWidth * (i-1)) + j - 1)*4;
+            var positionVal6 = ((imageWidth * (i+1)) + j - 1)*4;
+            var positionVal7 = ((imageWidth * i) + j + 1)*4;
+            var positionVal8 = ((imageWidth * (i-1)) + j + 1)*4;
+            var positionVal9 = ((imageWidth * (i+1)) + j + 1)*4;
+      
+      
+           if (data[positionVal1] > blurAmount*5) {
+            
+            imageData2.data[positionVal1] = data[positionVal1];
+            imageData2.data[positionVal1+1] = data[positionVal1 + 1];
+            imageData2.data[positionVal1+2] = data[positionVal1+ 2];
+            imageData2.data[positionVal1+3] = data[positionVal1+ 3];
+            
+             }
+            else {
+              for (var index = 1; index < 10; index ++){
+              //red;
+              imageData2.data[positionVal1] += kernal[index - 1]*imageData2.data[positionVal1[index]]* (1 / ((blurAmount + 1) * (blurAmount + 1)));
+                //green;
+              imageData2.data[positionVal1 + 1] += kernal[index - 1]*imageData2.data[positionVal1[index] + 1]* (1 / ((blurAmount + 1) * (blurAmount + 1)));
+                //blue;
+              imageData2.data[positionVal1 + 2] += kernal[index - 1]*imageData2.data[positionVal1[index] + 2]* (1 / ((blurAmount + 1) * (blurAmount + 1)));               
+              }  
+          
+            imageData2.data[((imageWidth * i) + j) * 4+3] = 255;
+            
+            }
+            
+          }
+        }
+    
+  
+         context.putImageData(imageData2,0,0);
+		requestAnimationFrame(draw);
+      }
+
+  
+
+ // context.putImageData(imageData2, 0, 0);
+
+requestAnimationFrame(draw);
+</script>
+  <p>move mouse across image to blur</p>
+</body>
+</html>
