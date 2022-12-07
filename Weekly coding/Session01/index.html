@@ -1,0 +1,92 @@
+<html>
+
+<head>
+ <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script src = "https://mimicproject.com/libs/maximilian.js">
+</script>
+
+</head>
+
+<body>
+    <canvas></canvas>
+
+    <!-- Our javascript code -->
+    <script type="text/javascript">
+        var drawOutput = new Array(1024);
+        var counter = 0;
+		var maximJs = maximilian();
+        var audio = new maximJs.maxiAudio();      
+      	var myOsc = new maximJs.maxiOsc();
+        var myOsc2 = new maximJs.maxiOsc();
+        var myOsc3 = new maximJs.maxiOsc();
+        var myOsc4 = new maximJs.maxiOsc();
+        var myOsc5 = new maximJs.maxiOsc();
+       	// var mySettings = new maximJs.maxiSettings();
+      
+        var red,green,blue;
+        audio.init();
+      // The below needs to be set to the samplerate of your audio card, default is 44100 !
+      	// mySettings.sampleRate=44100;
+ var averageOutput = 0;     
+        audio.play = function() {
+
+            counter++;
+// to perceptually freeze the signal we divide the sampling rate by the buffer size and 
+// use this as frequency
+            //var sum = myOsc.sinewave(43.06640625 * 1.0) + myOsc2.sinewave(43.06640625 * 10) * 0.15;
+// but this only works if the refresh rate is reliable
+// which depends on your browser
+            
+         /* var sum = myOsc.sinewave(44) ;//move up and down 44 times each second
+         var sum2 = myOsc5.sinewave(44)*0.5//0.5 change wave amplitude*/
+         // var sum3 = myOsc.sinewave(44)+myOsc2.sinewave(44);//1+1=2
+         // var sum4 = myOsc.sinewave(44)+myOsc2.sinewave(43);//tTwo waves add to each other, and when they both intersect with the x-axis the sound will disappear, and when one wave is on the x-axis and one is below the x-axis the sound will diminish as the value of the superposition becomes smaller
+         //var sum1 = myOsc.sinewave(60 + myOsc2.sinewave(0.1)*10)+myOsc3.sinewave(300+myOsc4.sinewave(5)*200);//change frequency
+         var sum1 = myOsc.sinewave(60 + myOsc2.sinewave(0.1)*20)*1.2+myOsc3.sinewave(80+myOsc4.sinewave(0.7)*300)*0.3;
+         var sum2 = myOsc5.sinewave(60)*0.1;
+         var out = sum1*0.8+sum2* 0.3;//change amplitude
+            
+         drawOutput[counter % 1024] = out;
+         averageOutput+=out;
+         return out;
+        };
+
+
+        var canvas = document.querySelector("canvas");
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        var context = canvas.getContext("2d");
+
+        canvas.setAttribute("width", width);
+        canvas.setAttribute("height", height);
+
+        var spacing = (width / 1024);
+
+        function draw() {
+
+            //This is basically the same as any other 2D processing draw routine.
+
+            //clear the screen
+            context.clearRect(0, 0, width, height);
+            red = myOsc.sinewave(300)*300;
+            green = myOsc2.sinewave(100)*200;
+            blue = myOsc3.sinewave(50)*100;
+      
+            for (var i = 0; i < 1024; i++) {
+                context.beginPath();
+                context.moveTo(i * spacing, height / 2);
+                context.lineTo(i * spacing, height / 2 + (drawOutput[i] * height / 4));
+                //context.strokeStyle = "rgb(220,220,220)";
+                context.strokeStyle = "rgb("+red+","+green+","+blue+")";
+                context.stroke();
+                context.closePath();
+            }
+          requestAnimationFrame(draw);
+        }
+
+        requestAnimationFrame(draw);
+   
+</script>
+
+</body>
+
+</html>
