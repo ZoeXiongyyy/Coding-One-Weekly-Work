@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script src = "https://mimicproject.com/libs/maximilian.js">
+</script>
+</head>
+<body>
+  <canvas></canvas>
+<script language="javascript" type="text/javascript">
+  var drawOutput = new Array(1024);
+  var counter = 0;
+
+ 
+  let maxi = maximilian();
+  let audio = new maxi.maxiAudio();
+  let myOsc1 = new maxi.maxiOsc();
+  let myOsc2 = new maxi.maxiOsc();
+  
+  
+  let myAudio1 = new maxi.maxiSample();
+  let myAudio2 = new maxi.maxiSample();
+  
+  let myAudio3 = new maxi.maxiSample();
+  var myAudio3Gain = 3.0;
+  var myAudio3Count = 4;
+  var myAudio3Pitch = 1.75;
+  var myAudio3Pitch2=2.2;
+  
+  let myAudio4 = new maxi.maxiSample();
+  let myAudio5 = new maxi.maxiSample();
+  
+  let myAudio6 = new maxi.maxiSample();
+  var myAudio6Gain = 2.0;
+  var myAudio6Count = 9;
+  var myAudio6Pitch = 0.95;
+  var myAudio6Pitch2=1.2;
+  
+  let myAudio7 = new maxi.maxiSample();
+  let myAudio8 = new maxi.maxiSample();
+  let myAudio9 = new maxi.maxiSample();
+  var myAudio9Count = 3;
+  var myAudio9Pitch = 2.25;
+  
+  var micksKick = new maxi.maxiSample();
+
+  var kickGain = 1.0;
+  var kickCount = 9;
+  var kickPitch = 0.75;
+  var kickPitch2=1.1;
+  var myDelay = new maxi.maxiDelayline();
+
+  let myClock = new maxi.maxiClock();
+  var delayTime = ((tempo/60 * 44100) / 16) * 3;
+  var feedback = 0.6;
+  
+  
+    audio.init();
+  
+  audio.loadSample('audio1.wav',myAudio1)
+  //audio.loadSample('piano1.wav',mySample);//initiallize the sample
+  audio.loadSample('audio2.wav',myAudio2)
+  //mySample.trigger();//control enter to run this one line of code without reloading the whole page.
+  //myClock.setTemp0(120);//120 beats per minutes  
+  audio.loadSample('audio3.wav',myAudio3)
+  audio.loadSample('audio4.wav',myAudio4)
+  audio.loadSample('audio8.wav',myAudio5)
+  audio.loadSample('audio6.wav',myAudio6)
+  audio.loadSample('audio13.wav',myAudio7)
+  audio.loadSample('audio10.wav',myAudio8)
+  audio.loadSample('audio12.wav',myAudio9)
+  audio.loadSample('BD1.wav', micksKick);
+  
+  var tempo = 120;
+  var ticks = 2;
+  
+ /* for(let i = 1; i <10; i ++ ){
+    ticks ++;
+  }*/
+
+  myClock.setTempo(tempo);
+  myClock.setTicksPerBeat(ticks);
+  
+  var averageOutput = 0;    
+  audio.play = function(){
+     counter++;
+    //var out = mySample.play();//play repeatedly
+   // var out = mySample.playOnce();//play one time
+   // var out = mySample.play(2);//play twice speed influnce the pitches
+   //var out = myPiano.play() + myGuitar.play(4);   
+  //var out = myPiano.play(myOsc.sinewave(0.1));
+  // in order to make the clock count ticks, you need to run the Mexico, take a method in the main Maximilien play function. 
+    
+     myClock.ticker();/*is going to recognise whenever there is an actual take.
+This should happen based on the number of samples which are passed*/
+     //if(myClock.tick){
+     //if(myClock.tick && myClock.playHead == 1){//it's going to play only when they play head equals one
+      
+    	if( myClock.tick && myClock.playHead%kickCount==0){
+           
+           
+            micksKick.trigger();
+			kickGain = 1.0;
+
+        	}
+   		 if( myClock.tick && Math.random()>0.8){
+           
+           
+            micksKick.trigger();
+          kickGain = 0.6;
+            
+       		 }
+    
+    	 if(myClock.tick && myClock.playHead%4 == 0){
+       /*playheadwhich is a number which is going up increasing all the time.
+One zero one, two, three, four, five, six, seven, eight, whatever. When it's zero, You're gonna get a zero.When it is equal to four. So it's gonna go zero. One, two, three.When it gets to four modulo four is going to treat just to get the remainder if it was dividing this value by that.So it's gonna give you a zero again and then you'll get one, two, three, four again.*/
+      		 myAudio1.trigger();
+    	 }
+    
+     	if(myClock.tick && myClock.playHead%2 == 0){
+       		myAudio2.trigger();
+    	 }
+
+     	if(myClock.tick && myClock.playHead%myAudio6Count===2){
+     		 myAudio3.trigger();
+     		 myAudio3Gain = 4.0;
+   		 }
+
+    	if(myClock.tick && myClock.playHead%6 == 1){
+     		 myAudio4.trigger();
+   		 }
+    	if(myClock.tick && myClock.playHead%3 == 1){
+     		 myAudio5.trigger();
+    	 }
+    
+   		 if( myClock.tick && myClock.playHead%myAudio6Count===4){
+      		 myAudio6Pitch = Math.random()*2;
+      		 myAudio6.trigger();
+      		 myAudio6Gain = 1.0;
+    	 }
+    
+    	 if(myClock.tick &&  myClock.playHead%4 == 0 && Math.random()>0.6){
+     		 myAudio7.trigger();
+   		 }
+    	 if(myClock.tick && myClock.playHead%2 == 1){
+     		 myAudio8.trigger();
+    	 }
+        if(myClock.tick &&  myClock.playHead%4 == 0 && Math.random()>0.5){
+
+     		 myAudio9.trigger();
+    	 }
+    var sum1= myAudio1.playOnce(myAudio3Pitch2) + myAudio2.playOnce(2); //+ myAudio3.playOnce(myOsc1.sinewave(myAudio3Pitch +myAudio3Pitch2)) ;
+    var sum2 = myAudio4.playOnce(myOsc2.coswave(0.5)) + myAudio5.playOnce(myAudio9Pitch)+ myAudio6.playOnce(myOsc1.sinewave(myAudio6Pitch));
+    
+    var sum3 =  myAudio7.playOnce(myOsc1.sinewave(myAudio9Pitch*0.2))+ myAudio8.playOnce(2)+myAudio9.playOnce(4)+micksKick.playOnce(kickPitch * kickPitch2); 
+    
+    var out = sum1 + sum2*0.7 + sum3;
+    
+    drawOutput[counter % 1024] = out;
+          averageOutput+=out;
+   
+    return out;
+  
+   // return  myOsc.sinewave(440); 
+  }
+    var canvas = document.querySelector("canvas");
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        var context = canvas.getContext("2d");
+
+        canvas.setAttribute("width", width);
+        canvas.setAttribute("height", height);
+
+        var spacing = (width / 1024);
+
+        function draw() {
+
+            //This is basically the same as any other 2D processing draw routine.
+
+            //clear the screen
+        context.clearRect(0, 0, width, height);
+      
+        for (var i = 0; i < 1024; i++) {
+                context.beginPath();
+                context.moveTo(i * spacing, height / 2);
+                context.lineTo(i * spacing, height / 2 + (drawOutput[i] * height / 4));
+                context.stroke();
+                context.closePath();
+            }
+          requestAnimationFrame(draw);
+        }
+
+        requestAnimationFrame(draw); 
+ 
+  
+</script>
+</body>
+</html>  
