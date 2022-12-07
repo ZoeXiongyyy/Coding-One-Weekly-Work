@@ -1,0 +1,152 @@
+<html>
+
+<head>
+ <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script src = "https://mimicproject.com/libs/maximilian.js">
+</script>
+
+</head>
+
+<body>
+    <canvas></canvas>
+
+</body>
+<script type="text/javascript">
+  
+   var mouseX =50;
+   var mouseY =10;
+      // We really need this
+   var TWO_PI = Math.PI * 2;
+
+   var original = 0;
+
+   var maximJs = maximilian();
+   var maxiAudio = new maximJs.maxiAudio();
+   
+   maxiAudio.init();
+    var osc = new maximJs.maxiOsc();
+    var osc2 = new maximJs.maxiOsc();
+    var osc3 = new maximJs.maxiOsc();
+    var drawOutput = new Array(1024);
+    var counter = 0;
+
+    var canvas = document.querySelector("canvas");
+
+        // This sets the width and height to the document window
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+        // Be aware that when you resize the window, you will need to call (do) this again
+
+        // This creates a 2d drawing 'context' in your canvas
+        // All your drawing will be done in this canvas
+    var context = canvas.getContext("2d");
+    var spacing2 = TWO_PI / 2;
+    
+	
+  	// This works out a frequency we can use that matches the buffersize
+    var bufferFreq=44100/1024;
+  
+    var interactX = Math.abs(canvas.widtht/2-mouseX);
+    var interactY = Math.abs(canvas.height/2-mouseY);
+
+  
+  
+canvas.addEventListener('mousemove', getMouse, false);
+
+        //here's our function 'getMouse'.
+        function getMouse(mousePosition) {
+                mouseX = mousePosition.layerX;
+                mouseY = mousePosition.layerY;
+        }
+    var size = 250 + mouseY/4;
+  	var position = canvas.width/2;
+    var changeThis = Math.random(Math.abs(mouseX-canvas.width/2)/1000);
+    var spacing = ((Math.PI * 2) / 1024);
+  
+
+maxiAudio.play = function() {
+        //var wave = (osc.sawn(bufferFreq) - osc2.sawn(bufferFreq*1.001));
+        var wave = osc.sinewave(bufferFreq+osc2.sinewave(bufferFreq*changeThis)*osc3.sinewave(0.001)*Math.abs(mouseX-canvas.width/2)*100);
+       // var wave2 = (osc.sawn(bufferFreq*changeThis) - osc2.sawn(mouseX-canvas.width/2));
+ 		 //var wave = osc.sinewave(bufferFreq+osc2.sinewave(bufferFreq*changeThis)+osc3.sinewave(0.01)*1000);
+         //var wave = osc.sinewave(bufferFreq*osc2.sinewave(bufferFreq)*10) * 1.15;
+        counter++;
+      
+        drawOutput[counter % 1024] = wave;
+      //  drawCentre[counter % 1024] = wave2;
+        return wave * 0.4;
+};
+
+
+function draw() {
+
+    //context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'rgb(0,0,0)';
+    context.fillRect(0, 0, canvas.width, canvas.height);//clear the screen;
+
+for (var i = 0; i < 1024; i++) {
+    context.strokeStyle = 'rgb(' + Math.floor(mouseX%300) + ',' + Math.floor(mouseX%150) + ',' + Math.floor(mouseY%220) + ')';//The Math.floor() function always rounds down and returns the largest integer less than or equal to a given number.
+  
+	context.beginPath();
+ 
+
+	context.moveTo(position + (Math.cos(i * spacing) * size * drawOutput[i]),(canvas.height / 2) + (Math.sin(i * spacing) * size * drawOutput[i]));
+
+	context.lineTo(position + (Math.cos(i * spacing) * drawOutput[i]),(canvas.height / 2) + (Math.sin(i * spacing) * drawOutput[i]));
+
+	context.stroke();
+	context.closePath();
+        }
+  for (var a = 0; a < 12; a++){
+           var segments1 = 100;
+           var spacing1 = TWO_PI / segments1;
+           var radius1 = 40+Math.abs(mouseX-canvas.width/2)/6;
+           context.lineWidth = 1;
+
+           context.strokeStyle = 'rgb(' + Math.floor(mouseX%100) + ',' + Math.floor(mouseX%250) + ',' + Math.floor(mouseY%300) + ')';
+
+           context.beginPath();
+           for (var p = 0; p < segments1; p++) {
+
+         //Then when I multiply by another value by an integer value, that's creating what we call this harmonic resonance where we get these petals forming. 		
+           var x1 = Math.sin(spacing1 + p * (mouseX/10)) * Math.cos(spacing1 * p * (mouseY/20)) * radius1 ;
+           var y1 = Math.sin(spacing1 + p * (mouseX/10)) * Math.sin(spacing1 * p * (mouseY/20)) * radius1 ;  
+             if(a < 6 ){ 
+          context.lineTo(100+x1+ 200*a,y1+radius1+100); 
+             }else{
+          context.lineTo(100+x1+ 200*(a-6),y1+radius1+400); 
+             }
+               }
+
+           context.stroke();    
+           context.closePath();   
+  
+  }
+  
+             context.strokeStyle = 'rgb(' + Math.floor(mouseX%300) + ',' + Math.floor(mouseX%250) + ',' + Math.floor(mouseY%220) + ')';//The Math.floor() function always rounds down and returns the largest integer less than or equal to a given number.
+            
+for (var n = 0; n < 1024; n++) {
+
+              context.lineWidth = 0.01 +n/150;
+              context.beginPath();
+              context.moveTo(n * spacing2 + 50, canvas.height);
+              context.lineTo(n * spacing2 + 50, canvas.height -  original );
+              context.stroke();
+              context.closePath();
+     
+  }//draw flower poles
+ 
+   
+            original+= 0.2;
+
+        if (original>canvas.height){
+            original = 0;
+        }
+
+  requestAnimationFrame(draw);
+    }
+
+requestAnimationFrame(draw);
+ 
+</script>
+
+</html>
