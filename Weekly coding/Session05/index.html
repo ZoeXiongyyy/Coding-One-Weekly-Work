@@ -1,0 +1,323 @@
+<html>
+
+<head>
+ <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script src = "https://mimicproject.com/libs/maximilian.js">
+</script>
+</head>
+
+<style>
+
+/*  
+    This is to make sure
+    the canvas is in the right position
+    on all browsers    
+*/
+
+canvas {
+position: absolute;
+top:0;
+left:0;
+}
+
+body {
+  
+  background-color:black;
+  
+  }
+  
+</style>
+
+<body>
+    <canvas></canvas>
+    <script>
+
+var fov = 200;
+
+var canvas = document.querySelector("canvas");
+var width = window.innerWidth;
+var height = window.innerHeight;
+var context = canvas.getContext("2d");
+canvas.setAttribute("width", width);
+canvas.setAttribute("height", height);
+canvas.addEventListener('mousemove',getMouse,false);
+
+
+var point = [];
+var point3d = [];
+var angleX = 0;
+var angleY = 0;
+      
+var angleXIncrease = 0;
+var angleYIncrease = 0;    
+      
+var HALF_WIDTH = width/2 ;
+var HALF_HEIGHT = height / 2;
+
+var mouseX=HALF_WIDTH;
+var mouseY=HALF_HEIGHT;      
+      
+var x3d = 0;
+var y3d = 0;
+var z3d = 0;
+
+var firstx2d=0;
+var firsty2d=0;
+var firstScale=0;
+var lastScale = 0;
+var lastx2d = 0;
+var lasty2d = 0;
+
+// The below code creates a sphere of points
+var dim =150; // This is the number of rings
+// Each ring has as many points as there are rings
+// This is the spacing for each ring
+var spacing = ((Math.PI * 2)/ dim);
+// This is the total number of points
+var numPoints = dim * dim;
+
+// This is the size.
+var size = 200;
+
+var counter=0;
+
+var maximJs = maximilian();
+var maxiAudio = new maximJs.maxiAudio();
+   
+maxiAudio.init();
+var osc = new maximJs.maxiOsc();
+var osc2 = new maximJs.maxiOsc();
+var osc3 = new maximJs.maxiOsc();
+var osc4 = new maximJs.maxiOsc(); 
+var osc5 = new maximJs.maxiOsc();
+var drawOutput = new Array(1024);
+var counter2 = 0;
+
+var averageOutput = 0; 
+      
+maxiAudio.play = function() {
+        counter2++;
+        
+        var sum1 = osc.sinewave(osc2.sinewave(44)*mouseY*0.00075*mouseX);
+  		//var sum2 = osc5.sinewave(44);
+        var out = sum1;//+sum2*mouseX;//change amplitude
+            
+        drawOutput[counter2 % 1024] = out;
+        averageOutput+=out;
+return out;
+
+};      
+      
+function draw() {
+
+  counter+=0.01;  
+
+  var mouseX1=mouseX/100;
+  var mouseY1=mouseY/200;
+
+  var points = [];
+    // Now we build the geom
+    
+    // This is a sphere just like before
+  for (var i = 0; i < dim; i++) {
+
+       // Calculate the size of the current ring 
+        var z = size * Math.cos(spacing / 2 * i * mouseX1) * Math.sin(spacing / 2 * i * mouseY1)+size * Math.cos(spacing / 2 * i) * (dim/4)+100;
+        var s = size * Math.sin(spacing / 2* i * mouseX1) * Math.sin(spacing / 2 * i * mouseY1)+size * Math.sin(spacing / 2 * i);
+       //if do not set the value of fov the image will not be illustrate completely；
+    
+        fov=20000;
+  
+       // For each ring    
+    
+        for (var j = 0; j < dim; j++ ) {
+        
+            // Create a circle at the current size, at the current depth    
+
+            //var m=10;//this affect how many petalles//
+            var m=Math.abs(mouseX-HALF_WIDTH);
+            var n1=1.2;//The smaller the number(whne less than 0.8) the more exaggerate the shape is
+            var n2=0.8;//This affect the size //
+            var n3=Math.abs(mouseX-HALF_WIDTH);//This affect the size amd the exaggerate of the shape in the same time //Recommend 9
+            var b =1;
+            var a =1;
+            var size=8;
+
+            var r1 = size * Math.pow(Math.pow(Math.abs(Math.cos((m * spacing/2 * j*mouseX1) / 4) / a), n2) + Math.pow(Math.abs(Math.sin((m * spacing/2 * j*mouseX1) / 4)) / b, n3), -(1 / n1));    
+            var point = [r1 * Math.cos(spacing * j * mouseX1) * s,r1 * Math.sin(spacing * j*mouseX1)*s,z];
+      
+
+            // Add the points        
+            points.push(point);
+    
+        }
+   }
+
+    context.fillStyle = "rgb(0,0,0)";
+    context.fillRect(0, 0, width, height);
+
+    angleX = HALF_WIDTH+mouseX1/10+counter;
+    angleY = HALF_HEIGHT-100-mouseY1+counter;
+    
+    /*angleXIncrease+=0.001;
+    angleYIncrease+=0.005;
+  
+    angleX = HALF_WIDTH+mouseX1+angleXIncrease;
+    angleY = HALF_HEIGHT-100-mouseY1+angleYIncrease;*/
+
+// Here we run through each ring and work out where it should be drawn
+
+    for (var n = 0; n < numPoints; n+=dim) {
+
+        for (var k = 0; k <dim; k++ ) {
+        point3d = points[Math.floor(n+k)];
+        z3d = point3d[2];
+
+       // This is the speed of the z
+       // It moves the points forwards in space
+       // z3d -= 1.0;
+
+       /* Check that the points aren't disappearing into space and if so push them back
+This also stops them stretching
+When they get too close*/
+        if (z3d < -fov) z3d += 0;
+        
+        point3d[2] = z3d;
+ 
+        // Calculate the rotation
+ 
+        rotateX(point3d,angleX);
+        rotateY(point3d,angleY);
+ 
+        // Get the point in position 
+ 
+        x3d = point3d[0];
+        y3d = point3d[1];
+        z3d = point3d[2];
+        // Convert the Z value to a scale factor
+        // This will give the appearance of depth
+        var scale = (fov / (fov + z3d));
+
+        // Store the X value with the scaling
+        // (just pushing it over to the left a bit too)
+        var x2d = (x3d * scale) + HALF_WIDTH;
+
+        // Store the Y value with the scaling
+        // FOV is taken into account
+
+        var y2d = (y3d * scale) + HALF_HEIGHT;
+
+        // If our main loop is going to join all the points together in a line, we need to store the first points and use them at the end.       
+
+        if (k===0){
+            
+            firstx2d=x2d;
+            firsty2d=y2d;
+            firstScale=scale;           
+           
+            lastx2d=x2d;
+            lasty2d=y2d;
+            lastScale=scale;           
+    
+        }
+
+        
+        // Draw the point
+
+        // Set the size based on scaling
+
+        context.lineWidth = scale;
+
+        var colourSpacing = (255/numPoints);
+        // var colourR =150-i*colourSpacing*mouseY/420+Math.random(mouseX);
+        var colourR =150-n*colourSpacing*mouseY/420+mouseX/300;
+        //var colourG = i*colourSpacing*Math.random(mouseX);
+        var colourG = n*colourSpacing*Math.abs(mouseX-HALF_WIDTH)/300;
+        var colourB = (mouseY-100)/2+Math.abs(mouseX-HALF_WIDTH)/300;
+        // var colourA = 255;
+        var colourA = mouseX/200;
+          
+        context.strokeStyle= 'rgba('+ colourR +', '+ colourG + ', '+ colourB +', ' + colourA+' )';
+
+        context.beginPath();
+        context.moveTo(lastx2d + lastScale, lasty2d);
+        context.lineTo(x2d + scale, y2d + scale);
+        context.stroke();
+        
+        // Store the last point so we can join it to the next one.
+
+        lastx2d=x2d;
+        lasty2d=y2d;
+        lastScale=scale;
+
+        // if it's the end of the current ring, join it to the first
+        
+        if (k==dim-1) {
+            
+           context.lineWidth = scale;
+
+           //context.strokeStyle = "rgb(255,255,255)";
+           context.beginPath();
+           context.moveTo(lastx2d + lastScale, lasty2d);
+           context.lineTo(firstx2d + firstScale, firsty2d);
+           context.stroke();           
+               
+        }
+
+     }
+    }
+}
+//adjust the speed of draw to make the animation more soomthly;
+setInterval(draw, 20);
+
+function rotateX(point3d,angleX) {
+  var x = point3d[0]; 
+  var z = point3d[2]; 
+	
+  var cosRY = Math.cos(angleX);
+  var sinRY = Math.sin(angleX);
+        
+  var tempz = z; 
+  var tempx = x;
+
+  x = (tempx*cosRY)+(tempz*sinRY);
+  z = (tempx*-sinRY)+(tempz*cosRY);
+
+  point3d[0] = x;
+  point3d[2] = z;
+          
+}
+
+function rotateY(point3d,angleY) {
+  var y = point3d[1];
+  var z = point3d[2]; 
+	
+  var cosRX = Math.cos(angleY);
+  var sinRX = Math.sin(angleY);
+        
+  var tempz = z; 
+  var tempy = y;
+
+  y = (tempy*cosRX)+(tempz*sinRX);
+  z = (tempy*-sinRX)+(tempz*cosRX);
+
+  point3d[1] = y;
+  point3d[2] = z;
+          
+} 
+
+function getMouse (mousePosition) {
+
+  if (mousePosition.layerX || mousePosition.layerX === 0) { 
+        mouseX = mousePosition.layerX;
+        mouseY = mousePosition.layerY;
+  } else if (mousePosition.offsetX || mousePosition.offsetX === 0) { 
+        mouseX = mousePosition.offsetX;
+        mouseY = mousePosition.offsetY;
+  }
+}
+
+</script>
+
+</body>
+
+</html>
