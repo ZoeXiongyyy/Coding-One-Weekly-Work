@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  	<style>
+		body {
+			margin: 0px;
+			background-color: #000000;
+			overflow: hidden;
+		}
+	</style>
+     <script>window.onerror = function(error, url, line) {parent.postMessage(["console", "❌ -- [ERROR] -- ❌ -- ⚠️ " + error], "*")};var cl = console.log;console.log = function () {var msg = [...arguments].join();parent.postMessage(["console", msg], "*");  }  </script><script crossorigin src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js">
+</script>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+</head>
+<body>
+	<script id="vertexShader" type="x-shader/x-vertex">
+		void main() { gl_Position = vec4( position, 1.0 ); }
+
+</script>
+	<script id="fragmentShader" type="x-shader/x-fragment">
+		//============================================================
+		//PUT YOUR GLSL CODE HERE
+		//============================================================
+
+  precision mediump float;
+        
+        uniform vec2 resolution;
+        uniform vec2 mouse;
+        uniform highp float time;
+        
+        
+        float line(vec2 normalised_Coordinate, float funct) {
+
+// This if statement does the same job as the step function            
+            //  if (normalised_Coordinate.y - funct < 0.001 && normalised_Coordinate.y - funct > 0.0) { 
+                
+            //     return normalised_Coordinate.y;
+                
+            //  } else {
+                 
+            //       return 0.;
+            //  }
+
+// So you might as well just use the step function to do the same thing.
+// If you wanted a smooth line, you could use smoothstep.
+           return step(funct,normalised_Coordinate.y)-step(funct,normalised_Coordinate.y-0.01);
+        }
+        
+        void main(){
+            
+        	//vec2 pos = gl_FragCoord.xy/resolution;
+            vec2 pos = gl_FragCoord.xy/resolution;
+           // float y = 0.5+ (sin(pos.x*6.28) * 0.5*abs(cos(time)));
+            float y = 0.5+ (sin(pos.x*10.)*abs(cos(time)) * 0.5*abs(mouse.y));
+            float y2 = (sin(pos.x*12.)*abs(cos(time)) *abs(mouse.y));
+            vec3 color1 = vec3(abs(sin(time)),y+1.0,y+2.0);
+            vec3 color2 = vec3(y)*5.8;
+            vec3 color3 = vec3(y)*2.8;
+            vec3 color4 = vec3(y2)*1.8;
+            vec3 color5 = vec3(y2)*7.;
+            
+            // Plot a line
+
+            float lines1 = line(pos*5.,y*2.);
+            float lines2 = line(pos*0.8*abs(cos(time)),y*0.8)*abs(sin(time));
+            float lines3 = line(pos*abs(cos(time)),y*2.8)*abs(sin(time)+1.5);
+            float lines4 = line(pos*abs(cos(time)),y2)*abs(sin(time)*mouse.x);
+            float lines5 = line(pos*abs(cos(time)),y2)*abs(sin(time)*mouse.x*0.1);
+            color1 = vec3(lines1,mouse.x,mouse.y*abs(cos(time)));
+            color2 = vec3(lines2,mouse.x*0.8,0.5*mouse.y*abs(cos(time)));
+            color3 = vec3(lines3,mouse.x,mouse.y*0.5*abs(cos(time)));
+            color4 = vec3(lines4,mouse.x,mouse.y*abs(cos(time)));
+            color5 = vec3(lines4,mouse.x*6.,mouse.y*0.1*abs(cos(time)));
+        	gl_FragColor = vec4(color1+color2+color3+color4+color5,abs(cos(time)));
+        }
+
+	//============================================================
+		//END OF GLSL CODE
+		//============================================================
+
+</script>
+	<script>
+		//change the resolution here. 1 is highest
+		var pixel_resolution = 2;
+		var container, stats;
+		var camera, scene, renderer;
+		var uniforms;
+		init();
+		animate();
+function init() { 
+			camera = new THREE.Camera();
+			camera.position.z = 1;
+			scene = new THREE.Scene();
+			var geometry = new THREE.PlaneBufferGeometry(2, 2);
+			uniforms = { time: { type: 'f', value: 1.0 }, resolution: { type: 'v2', value: new THREE.Vector2() }, mouse: {type: "v2", value: new THREE.Vector2()}};
+			var material = new THREE.ShaderMaterial({ uniforms: uniforms, vertexShader: document.getElementById('vertexShader').textContent, fragmentShader: document.getElementById('fragmentShader').textContent });
+			var mesh = new THREE.Mesh(geometry, material);
+			scene.add(mesh);
+			renderer = new THREE.WebGLRenderer();
+			//Hack here to change resolution 
+			renderer.setPixelRatio(window.devicePixelRatio / pixel_resolution);
+			document.body.appendChild(renderer.domElement);
+			onWindowResize();
+			window.addEventListener('resize', onWindowResize, false);
+	        window.addEventListener('mousemove', onMouseMove, false);
+
+		}
+		function onWindowResize(event) {
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			uniforms.resolution.value.x = renderer.domElement.width;
+			uniforms.resolution.value.y = renderer.domElement.height;
+
+		}
+		function animate() {
+			requestAnimationFrame(animate);
+			render();
+		}
+		function onMouseMove( event ) {
+        	uniforms.mouse.value.x = 2 * ( event.clientX / window.innerWidth );
+ 	        uniforms.mouse.value.y = 2 * ( 1-(event.clientY) / window.innerHeight
+ 	        );
+        }
+		function render() {
+			uniforms.time.value += 0.01;
+			renderer.render(scene, camera);
+		}
+
+</script>
+</body>
+</html>
